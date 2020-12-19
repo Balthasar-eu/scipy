@@ -228,3 +228,40 @@ class ContinuousFitAnalyticalMLEOverride(Benchmark):
     def time_fit(self, dist_name, loc_fixed, scale_fixed, shape1_fixed,
                  shape2_fixed, shape3_fixed):
         self.distn.fit(self.data, **self.fixed)
+
+
+class KolmogorovSmirnov(Benchmark):
+    param_names = ['alternative', 'mode', 'size']
+    # No auto since it defaults to exact for 20 samples
+    params = [
+        ['two-sided', 'less', 'greater'],
+        ['exact', 'approx', 'asymp'],
+        [19,20,21]
+    ]
+
+    def setup(self, alternative, mode, size):
+        np.random.seed(12345678)
+        a = stats.norm.rvs(size=20)
+        self.a = a
+
+    def time_ks(self, alternative,mode, size):
+        statistic, pvalue = stats.kstest(self.a,'norm', alternative=alternative,mode=mode,N=size)
+
+class KolmogorovSmirnovTwoSamples(Benchmark):
+    param_names = ['alternative', 'mode', 'size']
+    # No auto since it defaults to exact for 20 samples
+    params = [
+        ['two-sided', 'less', 'greater'],
+        ['exact', 'asymp'],
+        [(20,21),(20,20),(21,20)]
+    ]
+
+    def setup(self, alternative, mode, size):
+        np.random.seed(12345678)
+        a = stats.norm.rvs(size=size[0])
+        b = stats.norm.rvs(size=size[1])
+        self.a = a
+        self.b = b
+
+    def time_ks2(self, alternative,mode, size):
+        statistic, pvalue = stats.ks_2samp(self.a,self.b, alternative=alternative,mode=mode)
