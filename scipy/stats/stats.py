@@ -6657,7 +6657,7 @@ def _count_paths_outside_method(m, n, g, h):
             term = B[j] * bin
             num_paths += term
         return num_paths
-    except RuntimeWarning:
+    except (RuntimeWarning,OverflowError):
         raise FloatingPointError()
 
 
