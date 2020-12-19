@@ -6642,8 +6642,8 @@ def _count_paths_outside_method(m, n, g, h):
         B = np.zeros(lxj)
         B[0] = 1
         # Compute the B(x, y) terms
-        # The binomial coefficient is an integer, but special.binom() may return a float.
-        # Round it to the nearest integer.
+        # The binomial coefficient is an integer, so special.comb(,exact=True)
+        # can be used instead of special.binom()
         for j in range(1, lxj):
             Bj = special.comb(xj[j] + j, j,exact=True)
             for i in range(j):
