@@ -6636,32 +6636,29 @@ def _count_paths_outside_method(m, n, g, h):
     xj = [(h + mg * j + ng-1)//ng for j in range(lxj)]
     # B is an array just holding a few values of B(x,y), the ones needed.
     # B[j] == B(x_j, j)
-    if lxj == 0:
-        return np.round(special.binom(m + n, n))
-    B = np.zeros(lxj)
-    B[0] = 1
-    # Compute the B(x, y) terms
-    # The binomial coefficient is an integer, but special.binom() may return a float.
-    # Round it to the nearest integer.
-    for j in range(1, lxj):
-        Bj = np.round(special.binom(xj[j] + j, j))
-        if not np.isfinite(Bj):
-            raise FloatingPointError()
-        for i in range(j):
-            bin = np.round(special.binom(xj[j] - xj[i] + j - i, j-i))
-            Bj -= bin * B[i]
-        B[j] = Bj
-        if not np.isfinite(Bj):
-            raise FloatingPointError()
-    # Compute the number of path extensions...
-    num_paths = 0
-    for j in range(lxj):
-        bin = np.round(special.binom((m-xj[j]) + (n - j), n-j))
-        term = B[j] * bin
-        if not np.isfinite(term):
-            raise FloatingPointError()
-        num_paths += term
-    return np.round(num_paths)
+    try:
+        if lxj == 0:
+            return special.comb(m + n, n, exact=True)
+        B = np.zeros(lxj)
+        B[0] = 1
+        # Compute the B(x, y) terms
+        # The binomial coefficient is an integer, but special.binom() may return a float.
+        # Round it to the nearest integer.
+        for j in range(1, lxj):
+            Bj = special.comb(xj[j] + j, j,exact=True)
+            for i in range(j):
+                bin = special.comb(xj[j] - xj[i] + j - i, j-i,exact=True)
+                Bj -= bin * B[i]
+            B[j] = Bj
+        # Compute the number of path extensions...
+        num_paths = 0
+        for j in range(lxj):
+            bin = special.comb((m-xj[j]) + (n - j), n-j,exact=True)
+            term = B[j] * bin
+            num_paths += term
+        return num_paths
+    except RuntimeWarning:
+        raise FloatingPointError()
 
 
 def _attempt_exact_2kssamp(n1, n2, g, d, alternative):
