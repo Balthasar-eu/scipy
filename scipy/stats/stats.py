@@ -6645,15 +6645,15 @@ def _count_paths_outside_method(m, n, g, h):
         # The binomial coefficient is an integer, so special.comb(,exact=True)
         # can be used instead of special.binom()
         for j in range(1, lxj):
-            Bj = special.comb(xj[j] + j, j,exact=True)
+            Bj = special.comb(xj[j] + j, j, exact=True)
             for i in range(j):
-                bin = special.comb(xj[j] - xj[i] + j - i, j-i,exact=True)
+                bin = special.comb(xj[j] - xj[i] + j - i, j-i, exact=True)
                 Bj -= bin * B[i]
             B[j] = Bj
         # Compute the number of path extensions...
         num_paths = 0
         for j in range(lxj):
-            bin = special.comb((m-xj[j]) + (n - j), n-j,exact=True)
+            bin = special.comb((m-xj[j]) + (n - j), n-j, exact=True)
             term = B[j] * bin
             num_paths += term
         return num_paths

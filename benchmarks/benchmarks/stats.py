@@ -236,7 +236,7 @@ class KolmogorovSmirnov(Benchmark):
     params = [
         ['two-sided', 'less', 'greater'],
         ['exact', 'approx', 'asymp'],
-        [19,20,21]
+        [19, 20, 21]
     ]
 
     def setup(self, alternative, mode, size):
@@ -244,8 +244,8 @@ class KolmogorovSmirnov(Benchmark):
         a = stats.norm.rvs(size=20)
         self.a = a
 
-    def time_ks(self, alternative,mode, size):
-        statistic, pvalue = stats.kstest(self.a,'norm', alternative=alternative,mode=mode,N=size)
+    def time_ks(self, alternative, mode, size):
+        stats.kstest(self.a, 'norm', alternative=alternative, mode=mode, N=size)
 
 class KolmogorovSmirnovTwoSamples(Benchmark):
     param_names = ['alternative', 'mode', 'size']
@@ -253,7 +253,7 @@ class KolmogorovSmirnovTwoSamples(Benchmark):
     params = [
         ['two-sided', 'less', 'greater'],
         ['exact', 'asymp'],
-        [(20,21),(20,20),(21,20)]
+        [(21, 20), (20, 20)]
     ]
 
     def setup(self, alternative, mode, size):
@@ -263,5 +263,5 @@ class KolmogorovSmirnovTwoSamples(Benchmark):
         self.a = a
         self.b = b
 
-    def time_ks2(self, alternative,mode, size):
-        statistic, pvalue = stats.ks_2samp(self.a,self.b, alternative=alternative,mode=mode)
+    def time_ks2(self, alternative, mode, size):
+        stats.ks_2samp(self.a, self.b, alternative=alternative, mode=mode)
