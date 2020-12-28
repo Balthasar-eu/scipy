@@ -6636,29 +6636,26 @@ def _count_paths_outside_method(m, n, g, h):
     xj = [(h + mg * j + ng-1)//ng for j in range(lxj)]
     # B is an array just holding a few values of B(x,y), the ones needed.
     # B[j] == B(x_j, j)
-    try:
-        if lxj == 0:
-            return special.comb(m + n, n, exact=True)
-        B = np.zeros(lxj)
-        B[0] = 1
-        # Compute the B(x, y) terms
-        # The binomial coefficient is an integer, so special.comb(,exact=True)
-        # can be used instead of special.binom()
-        for j in range(1, lxj):
-            Bj = special.comb(xj[j] + j, j, exact=True)
-            for i in range(j):
-                bin = special.comb(xj[j] - xj[i] + j - i, j-i, exact=True)
-                Bj -= bin * B[i]
-            B[j] = Bj
-        # Compute the number of path extensions...
-        num_paths = 0
-        for j in range(lxj):
-            bin = special.comb((m-xj[j]) + (n - j), n-j, exact=True)
-            term = B[j] * bin
-            num_paths += term
-        return num_paths
-    except (RuntimeWarning,OverflowError):
-        raise FloatingPointError()
+    if lxj == 0:
+        return special.comb(m + n, n, exact=True)
+    B = np.zeros(lxj)
+    B[0] = 1
+    # Compute the B(x, y) terms
+    # The binomial coefficient is an integer, so special.comb(,exact=True)
+    # can be used instead of special.binom()
+    for j in range(1, lxj):
+        Bj = special.comb(xj[j] + j, j, exact=True)
+        for i in range(j):
+            bin = special.comb(xj[j] - xj[i] + j - i, j-i, exact=True)
+            Bj -= bin * B[i]
+        B[j] = Bj
+    # Compute the number of path extensions...
+    num_paths = 0
+    for j in range(lxj):
+        bin = special.comb((m-xj[j]) + (n - j), n-j, exact=True)
+        term = B[j] * bin
+        num_paths += term
+    return num_paths
 
 
 def _attempt_exact_2kssamp(n1, n2, g, d, alternative):
@@ -6677,27 +6674,28 @@ def _attempt_exact_2kssamp(n1, n2, g, d, alternative):
         return True, d, 1.0
     saw_fp_error, prob = False, np.nan
     try:
-        if alternative == 'two-sided':
-            if n1 == n2:
-                prob = _compute_prob_outside_square(n1, h)
-            else:
-                prob = 1 - _compute_prob_inside_method(n1, n2, g, h)
-        else:
-            if n1 == n2:
-                # prob = binom(2n, n-h) / binom(2n, n)
-                # Evaluating in that form incurs roundoff errors
-                # from special.binom. Instead calculate directly
-                jrange = np.arange(h)
-                prob = np.prod((n1 - jrange) / (n1 + jrange + 1.0))
-            else:
-                num_paths = _count_paths_outside_method(n1, n2, g, h)
-                bin = special.binom(n1 + n2, n1)
-                if not np.isfinite(bin) or not np.isfinite(num_paths) or num_paths > bin:
-                    saw_fp_error = True
+        with np.errstate(invalid='raise'):
+            if alternative == 'two-sided':
+                if n1 == n2:
+                    prob = _compute_prob_outside_square(n1, h)
                 else:
-                    prob = num_paths / bin
+                    prob = 1 - _compute_prob_inside_method(n1, n2, g, h)
+            else:
+                if n1 == n2:
+                    # prob = binom(2n, n-h) / binom(2n, n)
+                    # Evaluating in that form incurs roundoff errors
+                    # from special.binom. Instead calculate directly
+                    jrange = np.arange(h)
+                    prob = np.prod((n1 - jrange) / (n1 + jrange + 1.0))
+                else:
+                    num_paths = _count_paths_outside_method(n1, n2, g, h)
+                    bin = special.binom(n1 + n2, n1)
+                    if num_paths > bin:
+                        saw_fp_error = True
+                    else:
+                        prob = num_paths / bin
 
-    except FloatingPointError:
+    except (FloatingPointError, OverflowError):
         saw_fp_error = True
 
     if saw_fp_error:
